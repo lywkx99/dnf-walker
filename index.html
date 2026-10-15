@@ -2,9 +2,17 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TRACK-DNF walker 示意</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <!-- 手机：不让双指缩放、铺满刘海屏；横屏玩 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#070918" />
+    <!-- “添加到主屏幕”以后从主屏幕打开没有浏览器边框（iPhone 的 Safari 不允许网页自己全屏，靠这个） -->
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Hairpin Rush" />
+    <title>HAIRPIN RUSH · TRACK-DNF</title>
   </head>
   <body>
     <div id="root"></div>

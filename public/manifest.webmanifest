@@ -1,0 +1,11 @@
+{
+  "name": "HAIRPIN RUSH · TRACK-DNF",
+  "short_name": "Hairpin Rush",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#070918",
+  "theme_color": "#070918",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

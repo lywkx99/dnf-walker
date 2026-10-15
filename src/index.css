@@ -764,10 +764,9 @@ kbd {
 }
 .arr { width: 10px; height: 10px; fill: #fff; }
 
-.cog {
-  position: fixed;
-  top: 20px;
-  right: 22px;
+/* ---------- 右上角的圆形按钮：（手机比赛中的菜单）/ 全屏 / 声音 / 设置 ---------- */
+.utils { position: fixed; top: 20px; right: 22px; display: flex; gap: 10px; }
+.ubtn {
   width: 42px;
   height: 42px;
   display: grid;
@@ -778,29 +777,98 @@ kbd {
   border-radius: 50%;
   cursor: pointer;
 }
-.cog svg { width: 22px; height: 22px; fill: #c9d2ff; transition: transform 0.4s; }
-.cog:hover svg { transform: rotate(90deg); fill: #fff; }
-/* 声音开关：齿轮左边，同样的圆形按钮 */
-.snd {
-  position: fixed;
-  top: 20px;
-  right: 74px;
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  background: rgba(10, 14, 40, 0.65);
-  border: 1px solid rgba(160, 178, 255, 0.3);
-  border-radius: 50%;
-  cursor: pointer;
-}
-.snd svg { width: 22px; height: 22px; fill: none; stroke: #c9d2ff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ubtn svg { width: 22px; height: 22px; fill: none; stroke: #c9d2ff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.4s; }
+.ubtn:hover svg { stroke: #fff; }
+.ubtn.cog svg { fill: #c9d2ff; stroke: none; }
+.ubtn.cog:hover svg { transform: rotate(90deg); fill: #fff; }
+.ubtn.fs.on { border-color: var(--c-gold); }
+.ubtn.fs.on svg { stroke: var(--c-gold); }
 .snd .spk { fill: #c9d2ff; }
-.snd:hover svg { stroke: #fff; }
 .snd:hover .spk { fill: #fff; }
 .snd.off svg { stroke: #ff8a7c; }
 .snd.off .spk { fill: rgba(201, 210, 255, 0.45); }
+
+/* iPhone 点全屏时的提示 */
+.fs-hint {
+  position: fixed;
+  top: 74px;
+  right: 22px;
+  max-width: 340px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  font-stretch: 75%;
+  letter-spacing: 2px;
+  line-height: 1.4;
+  color: #e8ecff;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-left: 3px solid var(--c-gold);
+  pointer-events: none;
+  animation: lesson 5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.fs-hint b { color: var(--c-gold); }
+
+/* ---------- 触屏操作：左下转向，右下刹车 + 油门 ---------- */
+.touchpad { position: fixed; inset: auto 0 0 0; height: 0; pointer-events: none; }
+.tp-steer, .tp-pedals {
+  position: fixed;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  pointer-events: auto;
+}
+.tp-steer { left: calc(18px + env(safe-area-inset-left)); }
+.tp-pedals { right: calc(18px + env(safe-area-inset-right)); }
+.touchpad button {
+  font: inherit;
+  padding: 0;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  cursor: pointer;
+}
+/* 转向键：玻璃质感的圆 */
+.tp-btn {
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, rgba(60, 72, 150, 0.55), rgba(8, 10, 32, 0.7));
+  border: 1.5px solid rgba(160, 178, 255, 0.45);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: transform 0.06s, box-shadow 0.06s, border-color 0.06s;
+}
+.tp-btn .arr { width: 30px; height: 30px; fill: #e8ecff; }
+.tp-btn.down { transform: scale(0.94); border-color: var(--c-air); box-shadow: 0 0 22px rgba(89, 227, 255, 0.6), inset 0 0 18px rgba(89, 227, 255, 0.35); }
+.tp-btn.down .arr { fill: var(--c-air); }
+/* 踏板：斜切的竖条，带防滑纹；油门绿、刹车红 */
+.tp-pedal {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  padding-bottom: 12px !important;
+  border: 1.5px solid var(--tone);
+  border-radius: 12px;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0 3px, transparent 3px 11px),
+    linear-gradient(180deg, color-mix(in srgb, var(--tone) 28%, rgba(8, 10, 32, 0.75)), rgba(8, 10, 32, 0.8));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  transform: skewX(-8deg);
+  transition: transform 0.06s, box-shadow 0.06s, background 0.06s;
+}
+.tp-pedal span { transform: skewX(8deg); font-size: 15px; font-weight: 700; font-stretch: 75%; letter-spacing: 4px; color: var(--tone); }
+.tp-pedal.gas { --tone: var(--c-roll); width: 92px; height: 132px; }
+.tp-pedal.brake { --tone: var(--c-trap); width: 74px; height: 96px; }
+.tp-pedal.down { transform: skewX(-8deg) translateY(4px) scale(0.97); box-shadow: 0 0 26px color-mix(in srgb, var(--tone) 70%, transparent); background: linear-gradient(180deg, color-mix(in srgb, var(--tone) 60%, rgba(8, 10, 32, 0.6)), color-mix(in srgb, var(--tone) 25%, rgba(8, 10, 32, 0.8))); }
+.tp-pedal.down span { color: #fff; }
+
+/* 竖着拿手机：提示横过来（只在触屏设备上出现） */
+.rotate { display: none; }
+.breakfree-label b { color: #0e1a02; }
 
 /* 窗口较窄时整体缩小 */
 @media (max-width: 1150px) {
@@ -811,11 +879,170 @@ kbd {
 @media (max-width: 860px) {
   .cluster { transform: scale(0.6); }
   .logo { width: 260px; }
-  .tracks { flex-direction: column; }
-  .fx-grid, .tcards { grid-template-columns: 1fr; }
   .step-t { display: none; }
   .pane-title { font-size: 40px; }
+  .title { font-size: 54px; }
+}
+/* 窄而高（竖屏 / 窄窗口）：卡片排成一列 */
+@media (max-width: 860px) and (orientation: portrait) {
+  .tracks { flex-direction: column; }
+  .fx-grid, .tcards { grid-template-columns: 1fr; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .notes { grid-template-columns: 1fr; }
-  .title { font-size: 54px; }
+}
+/* 矮屏（手机横屏）：开始 / 结算界面压紧，仍然三列 */
+@media (max-height: 560px) {
+  .wizard, .result-card { padding: 14px 20px 16px; max-height: calc(100vh - 16px); }
+  .wizard { min-height: 0; }
+  .steps { margin-bottom: 10px; }
+  .step-n { font-size: 20px; }
+  .title { font-size: 44px; }
+  .pane-title { font-size: 34px; }
+  .subtitle { margin-top: 4px; font-size: 13px; letter-spacing: 3px; }
+  .burnt { margin-top: 10px; padding: 8px 14px 10px; }
+  .burnt-svg { max-height: 92px; }
+  .burnt-title { font-size: 17px; }
+  .burnt-line { font-size: 13px; }
+  .goal-chips { margin-top: 8px; gap: 6px; }
+  .goal-chips span { padding: 5px 10px; font-size: 12px; }
+  .fx-group { margin-top: 8px; }
+  .fx-card { padding: 8px; gap: 8px; }
+  .fx-glyph { width: 40px; height: 40px; }
+  .fx-glyph .ico { width: 22px; height: 22px; }
+  .fx-name { font-size: 15px; }
+  .fx-line { font-size: 12px; }
+  .tcards { margin-top: 10px; gap: 10px; }
+  .tcard { padding: 10px 12px 12px; gap: 3px; }
+  .tcard .dots { width: 30px; height: 30px; }
+  .tcard-title { font-size: 32px; }
+  .tcard-tag { margin-bottom: 2px; font-size: 13px; }
+  .tcard-best { margin-top: 4px; }
+  .wiz-foot { margin-top: 10px; }
+  .go-btn, .ghost-btn { padding: 6px 20px; font-size: 22px; }
+  .score { font-size: 72px; }
+  .rank { width: 96px; height: 108px; }
+  .rank span { font-size: 60px; }
+  .stat-value { font-size: 20px; }
+  .notes { margin-top: 10px; }
+  .note-text { font-size: 12px; }
+  /* 只滚中间的内容，步骤条和下面的按钮一直看得见 */
+  .wizard { overflow: hidden; }
+  .pane { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  /* 结算界面：成绩可以往下滑着看，“再来 / 菜单”贴在底边 */
+  .result-card { overscroll-behavior: contain; }
+  .result-btns { position: sticky; bottom: -16px; z-index: 1; margin: 10px -20px -16px; padding: 10px 20px 14px; background: linear-gradient(180deg, rgba(9, 11, 34, 0), rgba(9, 11, 34, 0.97) 35%); }
+}
+/* 更矮（手机横屏，高度 430 以下）：再压一档 */
+@media (max-height: 430px) {
+  .wizard, .result-card { padding: 10px 16px 12px; max-height: calc(100vh - 12px); }
+  .steps { margin-bottom: 6px; gap: 8px; }
+  .step-n { font-size: 17px; }
+  .title { font-size: 36px; }
+  .pane-title { font-size: 28px; }
+  .subtitle { margin-top: 2px; font-size: 11px; letter-spacing: 2px; }
+  .burnt { margin-top: 6px; padding: 6px 12px 8px; }
+  .burnt-svg { max-height: 62px; }
+  .burnt-text { margin-top: 4px; }
+  .burnt-title { font-size: 14px; }
+  .burnt-line { margin-top: 2px; font-size: 12px; }
+  .goal-chips { margin-top: 6px; }
+  .goal-chips span { padding: 3px 8px; font-size: 11px; }
+  .fx-group { margin-top: 6px; }
+  .fx-group-title { margin-bottom: 4px; font-size: 11px; }
+  .fx-grid { gap: 6px; }
+  .fx-card { padding: 6px; gap: 6px; }
+  .fx-glyph { width: 32px; height: 32px; }
+  .fx-glyph .ico { width: 18px; height: 18px; }
+  .fx-name { font-size: 13px; }
+  .fx-chip { font-size: 10px; }
+  .fx-line { margin-top: 2px; font-size: 11px; line-height: 1.25; }
+  .tcards { margin-top: 6px; gap: 8px; }
+  .tcard { padding: 8px 10px 10px; gap: 2px; }
+  .tcard .key { top: 8px; right: 8px; }
+  .tcard .dots { width: 24px; height: 24px; margin-bottom: 0; }
+  .tcard-title { font-size: 26px; }
+  .tcard-sub { font-size: 11px; letter-spacing: 3px; }
+  .tcard-tag { font-size: 12px; }
+  .tcard-meter { font-size: 10px; }
+  .tcard-best { margin-top: 2px; font-size: 11px; }
+  .tcard-best b { font-size: 16px; }
+  .wiz-foot { margin-top: 8px; }
+  .go-btn, .ghost-btn { padding: 4px 16px; font-size: 18px; }
+  .score { font-size: 54px; }
+  .rank { width: 72px; height: 82px; }
+  .rank span { font-size: 44px; }
+  .stat-grid { margin-top: 8px; gap: 6px; }
+  .stat { padding: 4px 8px; }
+  .stat-value { font-size: 17px; }
+  .stat-label { font-size: 10px; }
+  .notes { margin-top: 8px; gap: 6px; }
+  .note { padding: 5px 10px; }
+  .note-title { font-size: 14px; }
+  .note-text { font-size: 11px; }
+  .tracks { margin-top: 8px; }
+  .result-btns { bottom: -12px; margin: 8px -16px -12px; padding: 8px 16px 10px; }
+}
+
+/* ---------- 触屏设备（手机 / 平板）的版面 ---------- */
+html.touch, html.touch body, html.touch #root {
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+}
+/* 开始 / 结算界面要能上下滑 */
+html.touch .wizard, html.touch .result-card, html.touch .pane { touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+html.touch .keys { display: none; }
+/* 手机上没有键盘：按钮上的按键提示都去掉 */
+html.touch .go-btn kbd, html.touch .ghost-btn kbd, html.touch .tcard .key { display: none; }
+.chip-gas { color: var(--c-roll); }
+.chip-brake { color: var(--c-trap); }
+html.touch .logo { top: calc(8px + env(safe-area-inset-top)); left: calc(10px + env(safe-area-inset-left)); width: 200px; }
+/* 比赛中：按钮排在标志下面，仪表缩小挪到右上 */
+html.touch .utils { top: calc(62px + env(safe-area-inset-top)); left: calc(14px + env(safe-area-inset-left)); right: auto; gap: 8px; }
+/* 开始 / 结算界面：按钮竖排在右边，面板往左让出位置 */
+html.touch .utils.idle { top: calc(10px + env(safe-area-inset-top)); left: auto; right: calc(10px + env(safe-area-inset-right)); flex-direction: column; }
+html.touch .overlay { padding: env(safe-area-inset-top) calc(56px + env(safe-area-inset-right)) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+html.touch .wizard, html.touch .result-card { width: min(860px, calc(100% - 16px)); }
+html.touch .ubtn { width: 38px; height: 38px; }
+html.touch .ubtn svg { width: 19px; height: 19px; }
+html.touch .fs-hint { top: calc(108px + env(safe-area-inset-top)); left: calc(14px + env(safe-area-inset-left)); right: auto; }
+html.touch .cluster { top: calc(6px + env(safe-area-inset-top)); bottom: auto; right: calc(8px + env(safe-area-inset-right)); transform: scale(0.46); transform-origin: top right; }
+html.touch .timer { top: calc(6px + env(safe-area-inset-top)); transform: translateX(-50%) scale(0.72); transform-origin: top center; }
+html.touch .lesson { top: calc(112px + env(safe-area-inset-top)); left: calc(14px + env(safe-area-inset-left)); width: 250px; padding: 10px 14px 12px; }
+html.touch .lesson-title { font-size: 19px; }
+html.touch .lesson-text { font-size: 13px; }
+html.touch .callout { font-size: 38px; top: 20%; }
+html.touch .bonus-num { font-size: 76px; }
+html.touch .bonus-label { font-size: 17px; }
+html.touch .countdown { font-size: 120px; }
+html.touch .breakfree { bottom: calc(118px + env(safe-area-inset-bottom)); }
+html.touch .breakfree-label { font-size: 16px; }
+/* 竖屏时盖一层提示 */
+@media (orientation: portrait) {
+  html.touch .rotate {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 16px;
+    background: radial-gradient(ellipse at 50% 45%, rgba(20, 26, 70, 0.96), rgba(4, 5, 20, 0.98));
+    font-size: 22px;
+    font-weight: 700;
+    font-stretch: 75%;
+    letter-spacing: 5px;
+    color: #e8ecff;
+  }
+  html.touch .rotate b { color: var(--c-gold); }
+  html.touch .rotate svg { width: 96px; height: 96px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  html.touch .rotate .phone { stroke: #c9d2ff; stroke-width: 2.5; transform-origin: 32px 26px; animation: tilt 2.2s ease-in-out infinite; }
+  html.touch .rotate .turn { stroke: var(--c-gold); stroke-width: 2.5; }
+}
+@keyframes tilt {
+  0%, 20% { transform: rotate(0deg); }
+  55%, 85% { transform: rotate(-90deg); }
+  100% { transform: rotate(0deg); }
 }

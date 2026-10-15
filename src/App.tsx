@@ -4,7 +4,7 @@ import { KeyboardControls, type KeyboardControlsEntry } from '@react-three/drei'
 import { Leva } from 'leva'
 import World from './World'
 import { type Density, MAX_LEGS, TRAP_LEGS, V_MAX } from './model'
-import { CRASH_COST, GAME_T, LESSONS, type LessonKey, type Phase, SPEED_UNIT, actions, game, hud, rankOf } from './hud'
+import { CRASH_COST, GAME_T, LESSONS, type LessonKey, type Phase, SPEED_UNIT, actions, game, hud, isTouch, rankOf, touch } from './hud'
 import { sfx } from './sfx'
 
 export type Controls = 'forward' | 'backward' | 'left' | 'right'
@@ -314,7 +314,7 @@ function Cluster() {
         </div>
       )}
       <div className="breakfree" ref={stuck}>
-        <div className="breakfree-label">HOLD <kbd><Arrow rot={0} /></kbd> TO BREAK FREE</div>
+        <div className="breakfree-label">HOLD {isTouch ? <b>GAS</b> : <kbd><Arrow rot={0} /></kbd>} TO BREAK FREE</div>
         <div className="pips" ref={pips}>
           {Array.from({ length: PIPS }, (_, k) => <span key={k} />)}
         </div>
@@ -581,7 +581,7 @@ const POWER = [
 ]
 const DANGER = [
   { k: 'trap', icon: <FoldIcon />, name: 'SELF-TRAP ZONE', chip: 'TRAP', line: 'Folded, rugged patch of the nanoflower. The walker gets physically stuck at any speed.' },
-  { k: 'stuck', icon: <GooIcon />, name: 'ADSORPTION WELL', chip: 'STICK', line: 'Glowing green pit. Sticks you down — hold ▲ to break free.' },
+  { k: 'stuck', icon: <GooIcon />, name: 'ADSORPTION WELL', chip: 'STICK', line: `Glowing green pit. Sticks you down — hold ${isTouch ? 'GAS' : '▲'} to break free.` },
   { k: 'crystal', icon: <CrystalIcon />, name: 'CRYSTAL', chip: '−30', line: 'Every crash costs 30 hairpins.' },
 ]
 
@@ -678,7 +678,11 @@ function Menu({ density }: { density: Density }) {
               <div className="goal-chips">
                 <span><HairpinIcon />+1 PER OPENED HAIRPIN</span>
                 <span><ClockIcon />2:00 ON THE CLOCK</span>
-                <span><kbd><Arrow rot={0} /></kbd><kbd><Arrow rot={180} /></kbd>DRIVE<kbd><Arrow rot={-90} /></kbd><kbd><Arrow rot={90} /></kbd>STEER</span>
+                {isTouch ? (
+                  <span><kbd><Arrow rot={-90} /></kbd><kbd><Arrow rot={90} /></kbd>STEER · <b className="chip-gas">GAS</b> / <b className="chip-brake">BRAKE</b></span>
+                ) : (
+                  <span><kbd><Arrow rot={0} /></kbd><kbd><Arrow rot={180} /></kbd>DRIVE<kbd><Arrow rot={-90} /></kbd><kbd><Arrow rot={90} /></kbd>STEER</span>
+                )}
               </div>
             </>
           )}
@@ -819,8 +823,107 @@ function Results({ density }: { density: Density }) {
   )
 }
 
-// ================================================================ 左下按键提示 + 设置
-function Keys({ phase, onSettings, muted, onMute }: { phase: Phase; onSettings: () => void; muted: boolean; onMute: () => void }) {
+// ================================================================ 触屏操作（手机 / 平板）
+// 左下角左右转向，右下角刹车 + 油门；按住生效，多指可以同时按（例如一边转向一边踩油门）
+type TouchKey = keyof typeof touch
+function HoldButton({ k, className, children }: { k: TouchKey; className: string; children: React.ReactNode }) {
+  const [down, setDown] = useState(false)
+  const set = (v: boolean) => {
+    touch[k] = v
+    setDown(v)
+  }
+  useEffect(() => () => {
+    touch[k] = false
+  }, [k])
+  return (
+    <button
+      className={`${className} ${down ? 'down' : ''}`}
+      onPointerDown={(e) => {
+        e.preventDefault()
+        set(true)
+        sfx.unlock()
+        // 手指滑出按钮也算按着，直到抬起
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId)
+        } catch {
+          // 指针已经不在（极少见）：不捕获也能用
+        }
+      }}
+      onPointerUp={() => set(false)}
+      onPointerCancel={() => set(false)}
+      onLostPointerCapture={() => set(false)}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {children}
+    </button>
+  )
+}
+
+function TouchControls({ phase }: { phase: Phase }) {
+  if (!isTouch || (phase !== 'play' && phase !== 'count')) return null
+  return (
+    <div className="touchpad">
+      <div className="tp-steer">
+        <HoldButton k="left" className="tp-btn"><Arrow rot={-90} /></HoldButton>
+        <HoldButton k="right" className="tp-btn"><Arrow rot={90} /></HoldButton>
+      </div>
+      <div className="tp-pedals">
+        <HoldButton k="backward" className="tp-pedal brake"><span>BRAKE</span></HoldButton>
+        <HoldButton k="forward" className="tp-pedal gas"><span>GAS</span></HoldButton>
+      </div>
+    </div>
+  )
+}
+
+// ================================================================ 全屏
+// 电脑和安卓直接全屏（手机上顺便锁成横屏）；iPhone 的 Safari 不允许网页自己全屏，提示“添加到主屏幕”
+type FsDoc = Document & { webkitFullscreenElement?: Element; webkitExitFullscreen?: () => void }
+type FsEl = HTMLElement & { webkitRequestFullscreen?: () => void }
+const fsElement = () => document.fullscreenElement ?? (document as FsDoc).webkitFullscreenElement ?? null
+
+function useFullscreen() {
+  const [on, setOn] = useState(!!fsElement())
+  const [hint, setHint] = useState(0)
+  useEffect(() => {
+    const sync = () => setOn(!!fsElement())
+    document.addEventListener('fullscreenchange', sync)
+    document.addEventListener('webkitfullscreenchange', sync)
+    return () => {
+      document.removeEventListener('fullscreenchange', sync)
+      document.removeEventListener('webkitfullscreenchange', sync)
+    }
+  }, [])
+  const toggle = () => {
+    const el = document.documentElement as FsEl
+    if (fsElement()) {
+      if (document.exitFullscreen) void document.exitFullscreen()
+      else (document as FsDoc).webkitExitFullscreen?.()
+      return
+    }
+    if (el.requestFullscreen) {
+      el.requestFullscreen({ navigationUI: 'hide' })
+        .then(() => (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }).lock?.('landscape'))
+        .catch(() => undefined)
+    } else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
+    else setHint((h) => h + 1)
+  }
+  return { on, toggle, hint }
+}
+
+function FsIcon({ on }: { on: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24">
+      {on ? (
+        <path d="M9 3 V9 H3 M15 3 V9 H21 M9 21 V15 H3 M15 21 V15 H21" />
+      ) : (
+        <path d="M3 9 V3 H9 M21 9 V3 H15 M3 15 V21 H9 M21 15 V21 H15" />
+      )}
+    </svg>
+  )
+}
+
+// ================================================================ 左下按键提示 + 右上角的按钮（全屏 / 声音 / 设置；手机上比赛中多一个回菜单）
+function Keys({ phase, onSettings, muted, onMute, fs }: { phase: Phase; onSettings: () => void; muted: boolean; onMute: () => void; fs: ReturnType<typeof useFullscreen> }) {
   const playing = phase === 'play' || phase === 'count'
   return (
     <>
@@ -832,6 +935,7 @@ function Keys({ phase, onSettings, muted, onMute }: { phase: Phase; onSettings: 
             <span><kbd>R</kbd>RESTART</span>
             <span><kbd>ESC</kbd>MENU</span>
             <span><kbd>M</kbd>SOUND</span>
+            <span><kbd>F</kbd>FULL SCREEN</span>
           </>
         ) : phase === 'menu' ? (
           <>
@@ -839,6 +943,7 @@ function Keys({ phase, onSettings, muted, onMute }: { phase: Phase; onSettings: 
             <span><kbd><Arrow rot={-90} /></kbd>BACK</span>
             <span><kbd>1-3</kbd>TRACK</span>
             <span><kbd>M</kbd>SOUND</span>
+            <span><kbd>F</kbd>FULL SCREEN</span>
           </>
         ) : (
           <>
@@ -849,18 +954,46 @@ function Keys({ phase, onSettings, muted, onMute }: { phase: Phase; onSettings: 
           </>
         )}
       </div>
-      <button className={`snd ${muted ? 'off' : ''}`} onClick={onMute} aria-label="sound">
-        <svg viewBox="0 0 24 24">
-          <path className="spk" d="M4 9 H8 L13 5 V19 L8 15 H4 Z" />
-          {muted ? <path className="x" d="M16 9 L21 14 M21 9 L16 14" /> : <path className="wave" d="M16 8.5 a5 5 0 0 1 0 7 M18.5 6 a8.5 8.5 0 0 1 0 12" />}
-        </svg>
-      </button>
-      <button className="cog" onClick={onSettings} aria-label="settings">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm9 4.6v-2.2l-2.4-.6a7 7 0 0 0-.8-1.9l1.3-2.1-1.6-1.6-2.1 1.3a7 7 0 0 0-1.9-.8L13.1 2.8h-2.2l-.6 2.4a7 7 0 0 0-1.9.8L6.3 4.7 4.7 6.3 6 8.4a7 7 0 0 0-.8 1.9l-2.4.6v2.2l2.4.6c.2.7.4 1.3.8 1.9l-1.3 2.1 1.6 1.6 2.1-1.3c.6.4 1.2.6 1.9.8l.6 2.4h2.2l.6-2.4c.7-.2 1.3-.4 1.9-.8l2.1 1.3 1.6-1.6-1.3-2.1c.4-.6.6-1.2.8-1.9Z" />
-        </svg>
-      </button>
+      <div className={`utils ${playing ? 'playing' : 'idle'}`}>
+        {isTouch && playing && (
+          <button className="ubtn" onClick={() => { sfx.click(); actions.menu() }} aria-label="menu">
+            <svg viewBox="0 0 24 24"><path d="M4 6 H20 M4 12 H20 M4 18 H20" /></svg>
+          </button>
+        )}
+        <button className={`ubtn fs ${fs.on ? 'on' : ''}`} onClick={() => { sfx.click(); fs.toggle() }} aria-label="full screen">
+          <FsIcon on={fs.on} />
+        </button>
+        <button className={`ubtn snd ${muted ? 'off' : ''}`} onClick={onMute} aria-label="sound">
+          <svg viewBox="0 0 24 24">
+            <path className="spk" d="M4 9 H8 L13 5 V19 L8 15 H4 Z" />
+            {muted ? <path className="x" d="M16 9 L21 14 M21 9 L16 14" /> : <path className="wave" d="M16 8.5 a5 5 0 0 1 0 7 M18.5 6 a8.5 8.5 0 0 1 0 12" />}
+          </svg>
+        </button>
+        <button className="ubtn cog" onClick={onSettings} aria-label="settings">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm9 4.6v-2.2l-2.4-.6a7 7 0 0 0-.8-1.9l1.3-2.1-1.6-1.6-2.1 1.3a7 7 0 0 0-1.9-.8L13.1 2.8h-2.2l-.6 2.4a7 7 0 0 0-1.9.8L6.3 4.7 4.7 6.3 6 8.4a7 7 0 0 0-.8 1.9l-2.4.6v2.2l2.4.6c.2.7.4 1.3.8 1.9l-1.3 2.1 1.6 1.6 2.1-1.3c.6.4 1.2.6 1.9.8l.6 2.4h2.2l.6-2.4c.7-.2 1.3-.4 1.9-.8l2.1 1.3 1.6-1.6-1.3-2.1c.4-.6.6-1.2.8-1.9Z" />
+          </svg>
+        </button>
+      </div>
+      {fs.hint > 0 && (
+        <div key={fs.hint} className="fs-hint">
+          IPHONE: TAP <b>SHARE</b> → <b>ADD TO HOME SCREEN</b>, THEN OPEN IT FROM THE HOME SCREEN FOR FULL SCREEN
+        </div>
+      )}
     </>
+  )
+}
+
+// 手机竖着拿时：提示横过来
+function RotateHint() {
+  return (
+    <div className="rotate">
+      <svg viewBox="0 0 64 64">
+        <rect className="phone" x="22" y="8" width="20" height="36" rx="3" />
+        <path className="turn" d="M48 40 a18 18 0 0 1 -14 16 M30 52 L34 56 L30 60" />
+      </svg>
+      <div>ROTATE TO <b>LANDSCAPE</b></div>
+    </div>
   )
 }
 
@@ -868,23 +1001,28 @@ export default function App() {
   const [settings, setSettings] = useState(false)
   const [muted, setMuted] = useState(sfx.muted)
   const { phase, run, density } = useGame()
-  // 声音：第一次按键 / 点击时启用（浏览器的要求）；M 键开关
+  const fs = useFullscreen()
+  // 声音：第一次按键 / 点击时启用（浏览器的要求）；M 键开关声音，F 键开关全屏
   useEffect(() => {
     const unlock = () => sfx.unlock()
     const onKey = (e: KeyboardEvent) => {
       sfx.unlock()
-      if (e.code === 'KeyM' && !e.repeat) {
+      if (e.repeat) return
+      if (e.code === 'KeyM') {
         sfx.setMuted(!sfx.muted)
         setMuted(sfx.muted)
       }
+      if (e.code === 'KeyF') fs.toggle()
     }
-    window.addEventListener('pointerdown', unlock)
+    // 手机上手指按下不算“用户操作”，抬起才算，所以 pointerup / touchend 也要接
+    const gestures = ['pointerdown', 'pointerup', 'touchend'] as const
+    gestures.forEach((g) => window.addEventListener(g, unlock))
     window.addEventListener('keydown', onKey)
     return () => {
-      window.removeEventListener('pointerdown', unlock)
+      gestures.forEach((g) => window.removeEventListener(g, unlock))
       window.removeEventListener('keydown', onKey)
     }
-  }, [])
+  })
   const toggleMute = () => {
     sfx.unlock()
     sfx.setMuted(!sfx.muted)
@@ -893,16 +1031,18 @@ export default function App() {
   }
   return (
     <KeyboardControls map={KEYS}>
-      <Canvas shadows dpr={[1, 2]} gl={{ antialias: false, powerPreference: 'high-performance' }} camera={{ position: [0, 3, -6.4], fov: 50, near: 0.1, far: 1200 }}>
+      <Canvas shadows dpr={isTouch ? 1 : [1, 2]} gl={{ antialias: false, powerPreference: 'high-performance' }} camera={{ position: [0, 3, -6.4], fov: 50, near: 0.1, far: 1200 }}>
         <World />
       </Canvas>
       <Logo />
       <Cluster />
       <Timer phase={phase} />
       <LessonToast />
+      <TouchControls phase={phase} />
       {phase === 'menu' && <Menu density={density} />}
       {phase === 'over' && <Results key={run} density={density} />}
-      <Keys phase={phase} onSettings={() => setSettings((v) => !v)} muted={muted} onMute={toggleMute} />
+      <Keys phase={phase} onSettings={() => setSettings((v) => !v)} muted={muted} onMute={toggleMute} fs={fs} />
+      {isTouch && <RotateHint />}
       <Leva hidden={!settings} titleBar={{ title: 'SETTINGS', filter: false }}
         theme={{
           colors: { elevation1: 'rgba(14,18,44,0.9)', elevation2: 'rgba(20,26,60,0.82)', elevation3: 'rgba(40,50,100,0.9)', accent1: '#7c8cff', accent2: '#9aa8ff', accent3: '#c0c9ff', highlight1: '#8b96c9', highlight2: '#c9d2f5', highlight3: '#ffffff' },

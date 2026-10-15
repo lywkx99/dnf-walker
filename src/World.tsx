@@ -7,7 +7,7 @@ import {
   DENSITY, type Density, MAX_LEGS, LEG_BREAK, PLANET_R, STEM, V_MAX, WALKER_R, type WalkerState,
   TERRAIN, makeSites, newWalker, regimeOf, stepWalker, terrainH,
 } from './model'
-import { CRASH_COST, GAME_T, SPEED_UNIT, actions, announce, award, game, hud, newStats, saveBest, teach } from './hud'
+import { CRASH_COST, GAME_T, SPEED_UNIT, actions, announce, award, game, hud, isTouch, newStats, saveBest, teach, touch } from './hud'
 import { sfx } from './sfx'
 import type { Controls } from './App'
 import Sky from './Sky'
@@ -52,7 +52,8 @@ export default function World() {
   const [density, setDensity] = useState<Density>('MT')
   const ctl = useControls({
     roll: { label: 'Rolling', value: true },
-    quality: { label: 'Quality', value: 'high', options: { High: 'high', Fast: 'smooth' } },
+    // 手机 / 平板默认流畅画质（不开阴影和环境光遮蔽，渲染分辨率不放大）
+    quality: { label: 'Quality', value: isTouch ? 'smooth' : 'high', options: { High: 'high', Fast: 'smooth' } },
     camDist: { label: 'Cam distance', value: 6.4, min: 3, max: 14, step: 0.1 },
     camHeight: { label: 'Cam height', value: 3.0, min: 0.8, max: 8, step: 0.1 },
   })
@@ -285,8 +286,9 @@ export default function World() {
     }
     const live = game.phase === 'play'
     const keys = getKeys()
-    const move = live ? (keys.forward ? 1 : 0) - (keys.backward ? 1 : 0) : 0
-    const turnIn = live ? (keys.left ? 1 : 0) - (keys.right ? 1 : 0) : 0
+    // 键盘方向键和屏幕上的触屏按钮一起作用
+    const move = live ? (keys.forward || touch.forward ? 1 : 0) - (keys.backward || touch.backward ? 1 : 0) : 0
+    const turnIn = live ? (keys.left || touch.left ? 1 : 0) - (keys.right || touch.right ? 1 : 0) : 0
     // 转向有加速和回正
     S.turn += (turnIn - S.turn) * (1 - Math.exp(-7 * dt))
     if (!turnIn && Math.abs(S.turn) < 1e-3) S.turn = 0

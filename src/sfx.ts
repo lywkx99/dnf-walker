@@ -74,7 +74,8 @@ class Sfx {
         else void ctx.resume()
       })
     }
-    if (this.ctx.state === 'suspended' && !document.hidden) void this.ctx.resume()
+    // iPhone 来电等情况下会变成 interrupted，也一样恢复
+    if (this.ctx.state !== 'running' && this.ctx.state !== 'closed' && !document.hidden) void this.ctx.resume()
   }
 
   setMuted(m: boolean) {
