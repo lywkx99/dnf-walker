@@ -79,8 +79,8 @@ function Logo() {
       <g transform="translate(112 66) skewX(-12)" filter="url(#lg-glow)">
         <text className="lg-text" x="0" y="0">
           <tspan fill="url(#lg-track)">TRACK</tspan>
-          <tspan className="lg-sep" dx="4" fill="#ffd977">/</tspan>
-          <tspan dx="4" fill="url(#lg-dnf)">DNF</tspan>
+          <tspan className="lg-sep" dx="3" fill="#ffd977">-</tspan>
+          <tspan dx="3" fill="url(#lg-dnf)">DNF</tspan>
         </text>
       </g>
       <g transform="translate(118 78)">
@@ -964,9 +964,18 @@ function TouchControls({ phase }: { phase: Phase }) {
         <HoldButton k="left" className="tp-btn"><Arrow rot={-90} /></HoldButton>
         <HoldButton k="right" className="tp-btn"><Arrow rot={90} /></HoldButton>
       </div>
+      {/* 踏板：图标 + 带冲孔防滑面的踏面 + 铭牌，按下时前倾、冲孔亮起 */}
       <div className="tp-pedals">
-        <HoldButton k="backward" className="tp-pedal brake"><span>BRAKE</span></HoldButton>
-        <HoldButton k="forward" className="tp-pedal gas"><span>GAS</span></HoldButton>
+        <HoldButton k="backward" className="tp-pedal brake">
+          <svg className="tp-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><path d="M5.5 4.5 a10.5 10.5 0 0 0 0 15 M18.5 4.5 a10.5 10.5 0 0 1 0 15" /></svg>
+          <i className="tp-grip" />
+          <span className="tp-label">BRAKE</span>
+        </HoldButton>
+        <HoldButton k="forward" className="tp-pedal gas">
+          <svg className="tp-ico" viewBox="0 0 24 24"><path d="M5 13 L12 6 L19 13 M5 19.5 L12 12.5 L19 19.5" /></svg>
+          <i className="tp-grip" />
+          <span className="tp-label">GAS</span>
+        </HoldButton>
       </div>
     </div>
   )

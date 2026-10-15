@@ -46,7 +46,7 @@ body,
   pointer-events: none;
   filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.55));
 }
-.lg-sep { font-weight: 300; }
+.lg-sep { font-weight: 700; }
 .lg-sub {
   font-family: var(--font);
   font-weight: 400;
@@ -63,11 +63,15 @@ body,
   letter-spacing: 1px;
 }
 
-/* ---------- 事件播报 ---------- */
+/* ---------- 事件播报 ----------
+   横跨整屏、文字居中，不用 left: 50% + translateX(-50%)：动画里字距从宽收窄，
+   iPhone 的 Safari 只在动画开始时按当时（字距最宽）的宽度算一次 -50%，字会整体偏左 */
 .callout {
   position: fixed;
   top: 15%;
-  left: 50%;
+  left: 0;
+  right: 0;
+  text-align: center;
   font-size: 60px;
   font-weight: 700;
   font-stretch: 75%;
@@ -87,10 +91,10 @@ body,
 .callout.stuck { background-image: linear-gradient(180deg, #f4ffd8, var(--c-stuck)); filter: drop-shadow(0 0 18px rgba(184, 255, 58, 0.8)); }
 .callout.fuel { background-image: linear-gradient(180deg, #ffffff, var(--c-fuel)); filter: drop-shadow(0 0 18px rgba(111, 184, 255, 0.85)); }
 @keyframes callout {
-  0% { opacity: 0; transform: translateX(-50%) scale(1.7) skewX(-12deg); letter-spacing: 22px; }
-  14% { opacity: 1; transform: translateX(-50%) scale(1) skewX(-12deg); letter-spacing: 6px; }
-  72% { opacity: 1; transform: translateX(-50%) scale(1) skewX(-12deg); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-22px) scale(0.96) skewX(-12deg); }
+  0% { opacity: 0; transform: scale(1.7) skewX(-12deg); letter-spacing: 22px; }
+  14% { opacity: 1; transform: scale(1) skewX(-12deg); letter-spacing: 6px; }
+  72% { opacity: 1; transform: scale(1) skewX(-12deg); }
+  100% { opacity: 0; transform: translateY(-22px) scale(0.96) skewX(-12deg); }
 }
 
 /* ---------- 特殊得分：砸地 / 撞车，屏幕中间偏上的大字 ---------- */
@@ -950,26 +954,77 @@ kbd {
 .tp-btn .arr { width: 30px; height: 30px; fill: #e8ecff; }
 .tp-btn.down { transform: scale(0.94); border-color: var(--c-air); box-shadow: 0 0 22px rgba(89, 227, 255, 0.6), inset 0 0 18px rgba(89, 227, 255, 0.35); }
 .tp-btn.down .arr { fill: var(--c-air); }
-/* 踏板：斜切的竖条，带防滑纹；油门绿、刹车红 */
-.tp-pedal {
+/* 踏板：像赛车的金属踏板——带色调的金属板，顶上一道高光、底边压暗做出厚度，一圈色光描边；
+   中间是凹进去的冲孔防滑面，上面一个图标（油门双箭头、刹车是仪表上的刹车标志），底下一块铭牌。
+   踏板略往后仰（透视），按下时往前压、冲孔一个个亮起、铭牌反色；油门绿、刹车红 */
+.touchpad .tp-pedal {
   position: relative;
-  display: grid;
-  place-items: end center;
-  padding-bottom: 12px !important;
-  border: 1.5px solid var(--tone);
-  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 9px 8px;
+  border: none;
+  border-radius: 14px 14px 20px 20px;
   background:
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0 3px, transparent 3px 11px),
-    linear-gradient(180deg, color-mix(in srgb, var(--tone) 28%, rgba(8, 10, 32, 0.75)), rgba(8, 10, 32, 0.8));
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-  transform: skewX(-8deg);
-  transition: transform 0.06s, box-shadow 0.06s, background 0.06s;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 24%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 3px),
+    linear-gradient(150deg, color-mix(in srgb, var(--tone) 32%, #1b2148), #080b20 78%);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -6px 0 rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1.5px color-mix(in srgb, var(--tone) 75%, transparent),
+    0 10px 18px rgba(0, 0, 0, 0.55),
+    0 0 16px color-mix(in srgb, var(--tone) 22%, transparent);
+  transform: perspective(260px) rotateX(12deg) skewX(-6deg);
+  transform-origin: 50% 100%;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
-.tp-pedal span { transform: skewX(8deg); font-size: 15px; font-weight: 700; font-stretch: 75%; letter-spacing: 4px; color: var(--tone); }
+.tp-ico { flex: none; width: 22px; height: 22px; fill: none; stroke: var(--tone); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 5px var(--tone)); transition: stroke 0.08s; }
+/* 冲孔防滑面：凹进去，一排排小孔 */
+.tp-grip {
+  flex: 1;
+  align-self: stretch;
+  min-height: 10px;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle, rgba(0, 0, 0, 0.8) 0 1.7px, rgba(255, 255, 255, 0.12) 2.1px 2.5px, transparent 2.9px) center / 10px 10px,
+    linear-gradient(180deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.15));
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.7), inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+  transition: background 0.08s;
+}
+.tp-label {
+  flex: none;
+  padding: 1px 9px;
+  font-size: 13px;
+  font-weight: 700;
+  font-stretch: 75%;
+  letter-spacing: 3px;
+  color: var(--tone);
+  background: rgba(4, 6, 20, 0.75);
+  border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+  border-radius: 4px;
+  transition: color 0.08s, background 0.08s;
+}
 .tp-pedal.gas { --tone: var(--c-roll); width: 92px; height: 132px; }
 .tp-pedal.brake { --tone: var(--c-trap); width: 74px; height: 96px; }
-.tp-pedal.down { transform: skewX(-8deg) translateY(4px) scale(0.97); box-shadow: 0 0 26px color-mix(in srgb, var(--tone) 70%, transparent); background: linear-gradient(180deg, color-mix(in srgb, var(--tone) 60%, rgba(8, 10, 32, 0.6)), color-mix(in srgb, var(--tone) 25%, rgba(8, 10, 32, 0.8))); }
-.tp-pedal.down span { color: #fff; }
+.touchpad .tp-pedal.down {
+  transform: perspective(260px) rotateX(26deg) skewX(-6deg) translateY(3px);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.45),
+    inset 0 0 0 2px var(--tone),
+    0 4px 10px rgba(0, 0, 0, 0.5),
+    0 0 30px color-mix(in srgb, var(--tone) 70%, transparent);
+}
+.tp-pedal.down .tp-grip {
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--tone) 70%, #ffffff) 0 1.7px, transparent 2.6px) center / 10px 10px,
+    radial-gradient(ellipse at 50% 55%, color-mix(in srgb, var(--tone) 50%, transparent), transparent 75%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+}
+.tp-pedal.down .tp-ico { stroke: #ffffff; }
+.tp-pedal.down .tp-label { color: #071019; background: var(--tone); border-color: var(--tone); }
 
 /* 竖着拿手机：提示横过来（只在触屏设备上出现） */
 .rotate { display: none; }
@@ -1147,7 +1202,8 @@ html.touch .fs-hint { top: calc(108px + env(safe-area-inset-top)); left: calc(14
 html.touch .utils.idle ~ .fs-hint { top: calc(10px + env(safe-area-inset-top)); left: auto; right: calc(60px + env(safe-area-inset-right)); z-index: 2; }
 /* 画布和界面铺满实际看得见的区域（iPhone 的 Safari 里 100% 高度有时会算上地址栏后面的部分） */
 html.touch #root { position: fixed; inset: 0; width: auto; height: auto; }
-html.touch .cluster { top: calc(6px + env(safe-area-inset-top)); bottom: auto; right: calc(8px + env(safe-area-inset-right)); transform: scale(0.46); transform-origin: top right; }
+/* 仪表往下、往右挪一点：上方的 H2 BOOST 条不会被屏幕顶边切掉；右边只留一半的安全边距（仪表在圆角以下，不会被切） */
+html.touch .cluster { top: calc(26px + env(safe-area-inset-top)); bottom: auto; right: calc(4px + env(safe-area-inset-right) * 0.5); transform: scale(0.46); transform-origin: top right; }
 html.touch .timer { top: calc(6px + env(safe-area-inset-top)); transform: translateX(-50%) scale(0.72); transform-origin: top center; }
 html.touch .lesson { --cut: 11px; top: calc(110px + env(safe-area-inset-top)); left: calc(14px + env(safe-area-inset-left)); width: 268px; }
 html.touch .ls-body { padding: 8px 12px 11px 50px; }
@@ -1173,6 +1229,9 @@ html.touch .breakfree-label { font-size: 16px; }
   html.touch .tp-btn .arr { width: 26px; height: 26px; }
   html.touch .tp-pedal.gas { width: 82px; height: 112px; }
   html.touch .tp-pedal.brake { width: 66px; height: 82px; }
+  html.touch .touchpad .tp-pedal { gap: 4px; padding: 7px 7px 6px; }
+  html.touch .tp-ico { width: 18px; height: 18px; }
+  html.touch .tp-label { font-size: 11px; letter-spacing: 2px; padding: 0 6px; }
   html.touch .tp-steer, html.touch .tp-pedals { bottom: calc(10px + env(safe-area-inset-bottom)); gap: 12px; }
   html.touch .breakfree { bottom: calc(100px + env(safe-area-inset-bottom)); }
   /* 知识卡放宽一点、标题小一号，少占几行，不压到左下的转向键 */
