@@ -1160,6 +1160,7 @@ export default function App() {
       {phase === 'menu' && <Menu density={density} />}
       {phase === 'over' && <Results key={run} density={density} />}
       <Keys phase={phase} onSettings={() => setSettings((v) => !v)} muted={muted} onMute={toggleMute} fs={fs} />
+      <div className="credit">designed by <b>Yao Lian</b></div>
       {isTouch && <RotateHint />}
       <Leva hidden={!settings} titleBar={{ title: 'SETTINGS', filter: false }}
         theme={{

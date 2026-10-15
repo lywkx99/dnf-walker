@@ -66,6 +66,8 @@
       #boot.fail #boot-stage::before { background: #ff5a4e; box-shadow: 0 0 8px #ff5a4e; }
       .b-tip { margin-top: clamp(14px, 4.5vmin, 30px); font-size: clamp(11px, 2.3vmin, 13px); letter-spacing: 2px; line-height: 1.4; text-align: center; color: rgba(201, 210, 255, 0.62); }
       .b-tip b { color: #ffd977; }
+      .b-credit { position: absolute; right: calc(22px + env(safe-area-inset-right)); bottom: calc(5px + env(safe-area-inset-bottom)); font-size: 12px; letter-spacing: 2px; color: rgba(201, 210, 255, 0.5); }
+      .b-credit b { font-weight: 600; letter-spacing: 2.5px; color: rgba(232, 236, 255, 0.85); }
       @keyframes b-spin { to { transform: rotate(360deg); } }
       @keyframes b-shine { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
       @keyframes b-blink { from { opacity: 1; } to { opacity: 0.25; } }
@@ -96,6 +98,7 @@
         <div class="b-row"><span id="boot-stage">LOADING</span><span id="boot-pct">0%</span></div>
         <div class="b-tip"><b>TIP</b> · <span id="boot-tip"></span></div>
       </div>
+      <div class="b-credit">designed by <b>Yao Lian</b></div>
     </div>
     <div id="root"></div>
     <!--boot-src-->

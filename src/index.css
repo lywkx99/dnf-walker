@@ -854,6 +854,22 @@ body,
   white-space: nowrap;
 }
 .keys span { display: flex; align-items: center; gap: 5px; }
+/* 右下角署名：贴着底边的小字，压在仪表 / 踏板下面的空隙里，开始和结算界面上也一直在 */
+.credit {
+  position: fixed;
+  right: calc(22px + env(safe-area-inset-right));
+  bottom: calc(3px + env(safe-area-inset-bottom));
+  z-index: 3;
+  font-size: 12px;
+  font-weight: 400;
+  font-stretch: 75%;
+  letter-spacing: 2px;
+  line-height: 1.1;
+  color: rgba(201, 210, 255, 0.5);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.credit b { font-weight: 600; letter-spacing: 2.5px; color: rgba(232, 236, 255, 0.85); }
 kbd {
   display: inline-grid;
   place-items: center;
@@ -1193,7 +1209,10 @@ html.touch .logo { top: calc(8px + env(safe-area-inset-top)); left: calc(10px + 
 html.touch .utils { top: calc(62px + env(safe-area-inset-top)); left: calc(14px + env(safe-area-inset-left)); right: auto; gap: 8px; }
 /* 开始 / 结算界面：按钮竖排在右边，面板往左让出位置 */
 html.touch .utils.idle { top: calc(10px + env(safe-area-inset-top)); left: auto; right: calc(10px + env(safe-area-inset-right)); flex-direction: column; }
-html.touch .overlay { padding: env(safe-area-inset-top) calc(56px + env(safe-area-inset-right)) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+html.touch .overlay { padding: env(safe-area-inset-top) calc(56px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) env(safe-area-inset-left); }
+/* 手机上署名小一号，贴在踏板下面；开始 / 结算面板底下留了 12px 给它 */
+html.touch .credit { right: calc(18px + env(safe-area-inset-right)); bottom: calc(1px + env(safe-area-inset-bottom)); font-size: 9px; letter-spacing: 1.5px; }
+html.touch .credit b { letter-spacing: 2px; }
 html.touch .wizard, html.touch .result-card { width: min(860px, calc(100% - 16px)); }
 html.touch .ubtn { width: 38px; height: 38px; }
 html.touch .ubtn svg { width: 19px; height: 19px; }
@@ -1232,7 +1251,7 @@ html.touch .breakfree-label { font-size: 16px; }
   html.touch .touchpad .tp-pedal { gap: 4px; padding: 7px 7px 6px; }
   html.touch .tp-ico { width: 18px; height: 18px; }
   html.touch .tp-label { font-size: 11px; letter-spacing: 2px; padding: 0 6px; }
-  html.touch .tp-steer, html.touch .tp-pedals { bottom: calc(10px + env(safe-area-inset-bottom)); gap: 12px; }
+  html.touch .tp-steer, html.touch .tp-pedals { bottom: calc(12px + env(safe-area-inset-bottom)); gap: 12px; }
   html.touch .breakfree { bottom: calc(100px + env(safe-area-inset-bottom)); }
   /* 知识卡放宽一点、标题小一号，少占几行，不压到左下的转向键 */
   html.touch .lesson { width: 310px; }
