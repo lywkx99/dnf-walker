@@ -993,6 +993,7 @@ function RotateHint() {
         <path className="turn" d="M48 40 a18 18 0 0 1 -14 16 M30 52 L34 56 L30 60" />
       </svg>
       <div>ROTATE TO <b>LANDSCAPE</b></div>
+      <small>Screen won't turn? Switch off portrait orientation lock in Control Center.</small>
     </div>
   )
 }
@@ -1046,7 +1047,7 @@ export default function App() {
       <Leva hidden={!settings} titleBar={{ title: 'SETTINGS', filter: false }}
         theme={{
           colors: { elevation1: 'rgba(14,18,44,0.9)', elevation2: 'rgba(20,26,60,0.82)', elevation3: 'rgba(40,50,100,0.9)', accent1: '#7c8cff', accent2: '#9aa8ff', accent3: '#c0c9ff', highlight1: '#8b96c9', highlight2: '#c9d2f5', highlight3: '#ffffff' },
-          fonts: { mono: "'Bahnschrift', 'Segoe UI', sans-serif", sans: "'Bahnschrift', 'Segoe UI', sans-serif" },
+          fonts: { mono: "'Bahnschrift', 'Saira Variable', sans-serif", sans: "'Bahnschrift', 'Saira Variable', sans-serif" },
           fontSizes: { root: '14px' },
           sizes: { rootWidth: '300px' },
         }} />

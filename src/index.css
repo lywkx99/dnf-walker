@@ -1,4 +1,6 @@
-/* 全部界面用同一个字族（Windows 自带的 Bahnschrift：DIN 风格，带窄体），粗细和宽窄变化来分层次 */
+/* 全部界面用同一个字族（Windows 自带的 Bahnschrift：DIN 风格，带窄体），粗细和宽窄变化来分层次。
+   iPhone、安卓、Mac 没有 Bahnschrift，用随网页打包的 Saira（同样有宽窄轴，75% 就是窄体）；
+   以前退到系统字体时没有窄体，字变宽，在手机上会被挤出界面 */
 html,
 body,
 #root {
@@ -7,11 +9,12 @@ body,
   height: 100%;
   overflow: hidden;
   background: #070918;
-  font-family: 'Bahnschrift', 'DIN Alternate', 'Segoe UI', sans-serif;
+  font-family: var(--font);
   color: #e8ecff;
   user-select: none;
 }
 :root {
+  --font: 'Bahnschrift', 'Saira Variable', sans-serif;
   --c-roll: #5dff9e;
   --c-slip: #ffb347;
   --c-trap: #ff5a4e;
@@ -45,7 +48,7 @@ body,
 }
 .lg-sep { font-weight: 300; }
 .lg-sub {
-  font-family: 'Bahnschrift', 'Segoe UI', sans-serif;
+  font-family: var(--font);
   font-weight: 400;
   font-stretch: 75%;
   font-size: 13.5px;
@@ -53,7 +56,7 @@ body,
   opacity: 0.88;
 }
 .lg-text {
-  font-family: 'Bahnschrift', 'Segoe UI', sans-serif;
+  font-family: var(--font);
   font-weight: 700;
   font-stretch: 75%;
   font-size: 50px;
@@ -163,7 +166,7 @@ body,
 .gauge { position: relative; width: 320px; height: 320px; }
 .gauge > svg { width: 100%; height: 100%; filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.6)); }
 .ring { stroke: rgba(201, 210, 255, 0.18); }
-.tick { font-family: 'Bahnschrift', sans-serif; font-weight: 600; font-stretch: 75%; font-size: 17px; }
+.tick { font-family: var(--font); font-weight: 600; font-stretch: 75%; font-size: 17px; }
 .needle { fill: #ff5a4e; }
 .led { fill: none; stroke-width: 9; stroke-linecap: butt; stroke: rgba(255, 255, 255, 0.07); transition: stroke 0.08s; }
 .led.on.z-slip { stroke: var(--c-slip); }
@@ -452,6 +455,8 @@ body,
 .wizard, .result-card {
   width: min(860px, calc(100vw - 32px));
   max-height: calc(100vh - 40px);
+  /* iPhone 的 Safari 里 100vh 算上了被地址栏挡住的部分，面板会上下被切掉；dvh 是实际看得见的高度 */
+  max-height: calc(100dvh - 40px);
   overflow-y: auto;
   padding: 28px 34px 30px;
   box-sizing: border-box;
@@ -581,7 +586,7 @@ body,
 .result-btns { display: flex; justify-content: flex-end; gap: 12px; }
 
 /* ---------- 开始界面：三步引导 ---------- */
-.wizard { display: flex; flex-direction: column; min-height: min(660px, calc(100vh - 40px)); }
+.wizard { display: flex; flex-direction: column; min-height: min(660px, calc(100vh - 40px)); min-height: min(660px, calc(100dvh - 40px)); }
 /* 顶部步骤条：当前一步金色，走过的绿色，没到的暗；可以点 */
 .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
 .step {
@@ -631,11 +636,11 @@ body,
 .pin.fresh path { stroke: #ff6b7a; filter: drop-shadow(0 0 4px rgba(255, 107, 122, 0.9)); }
 .streaks path { fill: none; stroke: rgba(255, 217, 119, 0.75); stroke-width: 3; stroke-linecap: round; }
 .leg { stroke: #5fa8ff; stroke-width: 3; stroke-linecap: round; }
-.bb-label { font-family: 'Bahnschrift', sans-serif; font-size: 12px; font-weight: 600; font-stretch: 75%; letter-spacing: 3px; }
+.bb-label { font-family: var(--font); font-size: 12px; font-weight: 600; font-stretch: 75%; letter-spacing: 3px; }
 .bb-label.spent { fill: rgba(31, 214, 192, 0.85); }
 .bb-label.fresh { fill: #ff8a95; }
 .bb-arrow path { fill: none; stroke: var(--c-gold); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.bb-arrow text { font-family: 'Bahnschrift', sans-serif; font-size: 16px; font-weight: 700; font-stretch: 75%; letter-spacing: 4px; fill: var(--c-gold); }
+.bb-arrow text { font-family: var(--font); font-size: 16px; font-weight: 700; font-stretch: 75%; letter-spacing: 4px; fill: var(--c-gold); }
 .burnt-text { margin-top: 8px; }
 .burnt-title { font-size: 22px; font-weight: 700; font-stretch: 75%; letter-spacing: 3px; color: #fff; }
 .burnt-title span { color: var(--c-gold); }
@@ -892,7 +897,7 @@ kbd {
 }
 /* 矮屏（手机横屏）：开始 / 结算界面压紧，仍然三列 */
 @media (max-height: 560px) {
-  .wizard, .result-card { padding: 14px 20px 16px; max-height: calc(100vh - 16px); }
+  .wizard, .result-card { padding: 14px 20px 16px; max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); }
   .wizard { min-height: 0; }
   .steps { margin-bottom: 10px; }
   .step-n { font-size: 20px; }
@@ -927,14 +932,15 @@ kbd {
   .note-text { font-size: 12px; }
   /* 只滚中间的内容，步骤条和下面的按钮一直看得见 */
   .wizard { overflow: hidden; }
-  .pane { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .pane { min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+  .pane, .result-card { scrollbar-width: thin; scrollbar-color: rgba(160, 178, 255, 0.35) transparent; }
   /* 结算界面：成绩可以往下滑着看，“再来 / 菜单”贴在底边 */
   .result-card { overscroll-behavior: contain; }
   .result-btns { position: sticky; bottom: -16px; z-index: 1; margin: 10px -20px -16px; padding: 10px 20px 14px; background: linear-gradient(180deg, rgba(9, 11, 34, 0), rgba(9, 11, 34, 0.97) 35%); }
 }
 /* 更矮（手机横屏，高度 430 以下）：再压一档 */
 @media (max-height: 430px) {
-  .wizard, .result-card { padding: 10px 16px 12px; max-height: calc(100vh - 12px); }
+  .wizard, .result-card { padding: 10px 16px 12px; max-height: calc(100vh - 12px); max-height: calc(100dvh - 12px); }
   .steps { margin-bottom: 6px; gap: 8px; }
   .step-n { font-size: 17px; }
   .title { font-size: 36px; }
@@ -982,6 +988,20 @@ kbd {
   .tracks { margin-top: 8px; }
   .result-btns { bottom: -12px; margin: 8px -16px -12px; padding: 8px 16px 10px; }
 }
+/* 最矮（iPhone 横屏、Safari 地址栏还在时，看得见的高度只有 320–350）：第一步不用滑也放得下 */
+@media (max-height: 350px) {
+  .steps { margin-bottom: 4px; }
+  .step-n { font-size: 15px; }
+  .title { font-size: 30px; }
+  .pane-title { font-size: 24px; }
+  .burnt-svg { max-height: 46px; }
+  .fx-group { margin-top: 4px; }
+  .fx-group-title { margin-bottom: 2px; }
+  .fx-card { padding: 5px 6px; }
+  .wiz-foot { margin-top: 6px; }
+  .go-btn, .ghost-btn { padding: 3px 14px; font-size: 16px; }
+  .score { font-size: 44px; }
+}
 
 /* ---------- 触屏设备（手机 / 平板）的版面 ---------- */
 html.touch, html.touch body, html.touch #root {
@@ -1008,6 +1028,10 @@ html.touch .wizard, html.touch .result-card { width: min(860px, calc(100% - 16px
 html.touch .ubtn { width: 38px; height: 38px; }
 html.touch .ubtn svg { width: 19px; height: 19px; }
 html.touch .fs-hint { top: calc(108px + env(safe-area-inset-top)); left: calc(14px + env(safe-area-inset-left)); right: auto; }
+/* 开始 / 结算界面时按钮在右边，提示也贴着按钮出现 */
+html.touch .utils.idle ~ .fs-hint { top: calc(10px + env(safe-area-inset-top)); left: auto; right: calc(60px + env(safe-area-inset-right)); z-index: 2; }
+/* 画布和界面铺满实际看得见的区域（iPhone 的 Safari 里 100% 高度有时会算上地址栏后面的部分） */
+html.touch #root { position: fixed; inset: 0; width: auto; height: auto; }
 html.touch .cluster { top: calc(6px + env(safe-area-inset-top)); bottom: auto; right: calc(8px + env(safe-area-inset-right)); transform: scale(0.46); transform-origin: top right; }
 html.touch .timer { top: calc(6px + env(safe-area-inset-top)); transform: translateX(-50%) scale(0.72); transform-origin: top center; }
 html.touch .lesson { top: calc(112px + env(safe-area-inset-top)); left: calc(14px + env(safe-area-inset-left)); width: 250px; padding: 10px 14px 12px; }
@@ -1019,6 +1043,15 @@ html.touch .bonus-label { font-size: 17px; }
 html.touch .countdown { font-size: 120px; }
 html.touch .breakfree { bottom: calc(118px + env(safe-area-inset-bottom)); }
 html.touch .breakfree-label { font-size: 16px; }
+/* 矮屏手机（Safari 地址栏还在时）：按钮小一号，给画面多留点地方 */
+@media (max-height: 350px) {
+  html.touch .tp-btn { width: 72px; height: 72px; }
+  html.touch .tp-btn .arr { width: 26px; height: 26px; }
+  html.touch .tp-pedal.gas { width: 82px; height: 112px; }
+  html.touch .tp-pedal.brake { width: 66px; height: 82px; }
+  html.touch .tp-steer, html.touch .tp-pedals { bottom: calc(10px + env(safe-area-inset-bottom)); gap: 12px; }
+  html.touch .breakfree { bottom: calc(100px + env(safe-area-inset-bottom)); }
+}
 /* 竖屏时盖一层提示 */
 @media (orientation: portrait) {
   html.touch .rotate {
@@ -1037,6 +1070,7 @@ html.touch .breakfree-label { font-size: 16px; }
     color: #e8ecff;
   }
   html.touch .rotate b { color: var(--c-gold); }
+  html.touch .rotate small { max-width: 260px; font-size: 13px; font-weight: 400; font-stretch: 100%; letter-spacing: 0.5px; line-height: 1.4; text-align: center; color: rgba(201, 210, 255, 0.75); }
   html.touch .rotate svg { width: 96px; height: 96px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
   html.touch .rotate .phone { stroke: #c9d2ff; stroke-width: 2.5; transform-origin: 32px 26px; animation: tilt 2.2s ease-in-out infinite; }
   html.touch .rotate .turn { stroke: var(--c-gold); stroke-width: 2.5; }

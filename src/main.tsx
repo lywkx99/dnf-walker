@@ -1,5 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+// 没有 Bahnschrift 的设备（iPhone、安卓、Mac）用的窄体字，随网页打包、不联网也能用（Windows 上不会下载）
+import '@fontsource-variable/saira/wdth.css'
 import './index.css'
 import App from './App.tsx'
 import { isTouch } from './hud'

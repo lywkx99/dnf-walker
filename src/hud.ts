@@ -18,8 +18,8 @@ export const hud = {
   bonus: { id: 0, kind: 'slam' as 'slam' | 'crash', amount: 0, height: 0, dist: 0 },
 }
 
-// 触屏设备（手机 / 平板）：用屏幕上的按钮开车，默认流畅画质
-export const isTouch = typeof window !== 'undefined' && (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window)
+// 触屏设备（手机 / 平板）：用屏幕上的按钮开车，默认流畅画质。网址后面加 ?touch 可以在电脑上强制用手机版面（调试用）
+export const isTouch = typeof window !== 'undefined' && (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window || new URLSearchParams(location.search).has('touch'))
 // 屏幕按钮的按下状态（和键盘方向键一起作用）
 export const touch = { forward: false, backward: false, left: false, right: false }
 
