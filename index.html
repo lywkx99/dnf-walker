@@ -13,9 +13,197 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Hairpin Rush" />
     <title>HAIRPIN RUSH · TRACK-DNF</title>
+    <!-- 载入画面的样式直接写在这里：网页一到就能画出来，不用等脚本和样式表 -->
+    <style>
+      html, body { margin: 0; background: #070918; }
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: radial-gradient(ellipse at 50% 42%, #1c2268 0%, #0b0e2c 48%, #05061a 100%);
+        color: #e8ecff;
+        font-family: 'Bahnschrift', 'DIN Condensed', 'DIN Alternate', 'Roboto Condensed', 'Arial Narrow', sans-serif;
+        font-stretch: 75%;
+        -webkit-user-select: none;
+        user-select: none;
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+      #boot.out { opacity: 0; transform: scale(1.04); pointer-events: none; }
+      #boot.fail { cursor: pointer; }
+      /* 稀疏的星点 */
+      #boot::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0.7;
+        background-image:
+          radial-gradient(1.4px 1.4px at 12% 22%, #fff, transparent), radial-gradient(1px 1px at 28% 72%, #c9d2ff, transparent),
+          radial-gradient(1.2px 1.2px at 46% 12%, #fff, transparent), radial-gradient(1px 1px at 63% 84%, #c9d2ff, transparent),
+          radial-gradient(1.5px 1.5px at 78% 28%, #fff, transparent), radial-gradient(1px 1px at 88% 64%, #c9d2ff, transparent),
+          radial-gradient(1.2px 1.2px at 6% 88%, #fff, transparent), radial-gradient(1px 1px at 94% 8%, #fff, transparent);
+      }
+      .b-core { position: relative; display: flex; flex-direction: column; align-items: center; width: min(460px, 78vw); }
+      .b-logo { width: clamp(52px, 14vmin, 92px); height: auto; overflow: visible; filter: drop-shadow(0 0 14px rgba(124, 243, 255, 0.45)); }
+      .b-ring { fill: rgba(10, 12, 40, 0.55); stroke: url(#b-ring-g); stroke-width: 3; stroke-dasharray: 52 10 18 10; transform-box: fill-box; transform-origin: center; animation: b-spin 3.2s linear infinite; }
+      .b-title { margin-top: clamp(8px, 2.4vmin, 16px); font-size: clamp(34px, 9vmin, 64px); font-weight: 700; line-height: 1; letter-spacing: 3px; white-space: nowrap; transform: skewX(-12deg); }
+      .b-title span { color: transparent; background: linear-gradient(100deg, #ffe08a, #ff7a4f); -webkit-background-clip: text; background-clip: text; }
+      .b-sub { margin-top: 6px; font-size: clamp(11px, 2.4vmin, 15px); font-weight: 600; letter-spacing: 8px; color: rgba(201, 210, 255, 0.78); }
+      .b-sub b { color: #ffd977; }
+      /* 进度条：斜切、分格；下载时按真实字节走，搭建时交给浏览器的过渡动画（主线程忙也照样走） */
+      .b-bar { position: relative; width: 100%; height: 12px; margin-top: clamp(16px, 5vmin, 34px); overflow: hidden; transform: skewX(-20deg); background: rgba(10, 14, 44, 0.85); border: 1px solid rgba(160, 178, 255, 0.35); }
+      #boot-fill { position: absolute; inset: 0; transform-origin: left; transform: scaleX(0); will-change: transform; background: linear-gradient(90deg, #36c6ff, #5dff9e); box-shadow: 0 0 14px rgba(93, 255, 158, 0.7); }
+      .b-bar::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 14px, rgba(5, 6, 26, 0.85) 14px 17px); }
+      .b-bar::before { content: ''; position: absolute; z-index: 1; top: 0; bottom: 0; left: 0; width: 30%; opacity: 0.45; will-change: transform; background: linear-gradient(90deg, transparent, #ffffff, transparent); animation: b-shine 1.4s linear infinite; }
+      .b-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 10px; font-size: clamp(11px, 2.4vmin, 14px); font-weight: 600; letter-spacing: 3px; color: #c9d2ff; }
+      #boot-stage::before { content: ''; display: inline-block; width: 7px; height: 7px; margin: 0 9px 2px 1px; vertical-align: middle; background: #5dff9e; box-shadow: 0 0 8px #5dff9e; transform: rotate(45deg); animation: b-blink 0.6s ease-in-out infinite alternate; }
+      #boot-pct { font-size: 1.25em; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; transition: opacity 0.2s; }
+      #boot.build #boot-pct { opacity: 0; }
+      #boot.fail #boot-fill { background: #ff5a4e; box-shadow: 0 0 14px rgba(255, 90, 78, 0.7); }
+      #boot.fail #boot-stage { color: #ff8a7c; }
+      #boot.fail #boot-stage::before { background: #ff5a4e; box-shadow: 0 0 8px #ff5a4e; }
+      .b-tip { margin-top: clamp(14px, 4.5vmin, 30px); font-size: clamp(11px, 2.3vmin, 13px); letter-spacing: 2px; line-height: 1.4; text-align: center; color: rgba(201, 210, 255, 0.62); }
+      .b-tip b { color: #ffd977; }
+      @keyframes b-spin { to { transform: rotate(360deg); } }
+      @keyframes b-shine { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+      @keyframes b-blink { from { opacity: 1; } to { opacity: 0.25; } }
+    </style>
   </head>
   <body>
+    <div id="boot">
+      <div class="b-core">
+        <svg class="b-logo" viewBox="-50 -50 100 100">
+          <defs>
+            <linearGradient id="b-ring-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd977" /><stop offset="0.5" stop-color="#ff8a5c" /><stop offset="1" stop-color="#8b5cff" /></linearGradient>
+            <linearGradient id="b-petal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cf3ff" /><stop offset="1" stop-color="#8b5cff" /></linearGradient>
+            <radialGradient id="b-core-g" cx="0.35" cy="0.35" r="0.8"><stop offset="0" stop-color="#fff6c8" /><stop offset="0.45" stop-color="#ffc84a" /><stop offset="1" stop-color="#a8600a" /></radialGradient>
+          </defs>
+          <circle class="b-ring" r="46" />
+          <g fill="url(#b-petal)" opacity="0.6">
+            <ellipse rx="8.5" ry="25" cy="-15" /><ellipse rx="8.5" ry="25" cy="-15" transform="rotate(45)" />
+            <ellipse rx="8.5" ry="25" cy="-15" transform="rotate(90)" /><ellipse rx="8.5" ry="25" cy="-15" transform="rotate(135)" />
+            <ellipse rx="8.5" ry="25" cy="-15" transform="rotate(180)" /><ellipse rx="8.5" ry="25" cy="-15" transform="rotate(225)" />
+            <ellipse rx="8.5" ry="25" cy="-15" transform="rotate(270)" /><ellipse rx="8.5" ry="25" cy="-15" transform="rotate(315)" />
+          </g>
+          <circle r="11" fill="url(#b-core-g)" />
+          <circle cx="32" cy="-32" r="5" fill="#ffd977" />
+        </svg>
+        <div class="b-title">HAIRPIN <span>RUSH</span></div>
+        <div class="b-sub">TRACK<b>-</b>DNF</div>
+        <div class="b-bar"><i id="boot-fill"></i></div>
+        <div class="b-row"><span id="boot-stage">LOADING</span><span id="boot-pct">0%</span></div>
+        <div class="b-tip"><b>TIP</b> · <span id="boot-tip"></span></div>
+      </div>
+    </div>
     <div id="root"></div>
+    <!--boot-src-->
+    <script>
+      // 载入画面：先显示，再边下载边报进度（下载 0–70%），下完进入“搭建星球”（70–95%，交给浏览器的过渡动画），
+      // 画面第一帧画出来以后由游戏调用 __boot.done() 收起。打包时会把主脚本的地址和大小写进 __BOOT_SRC / __BOOT_SIZE（见 vite.config.ts）
+      ;(function () {
+        var boot = document.getElementById('boot')
+        var fill = document.getElementById('boot-fill')
+        var pctEl = document.getElementById('boot-pct')
+        var stage = document.getElementById('boot-stage')
+        var tips = [
+          'HIT RAMPS HEAD-ON FOR BIG AIR',
+          'OPENED HAIRPINS ARE SPENT — KEEP RUSHING TO FRESH ONES',
+          'GREEN PITS GLUE YOU DOWN — HOLD GAS TO BREAK FREE',
+          'EVERY CRYSTAL CRASH COSTS 30 HAIRPINS',
+          'GRAB THE BLUE HELIX FOR A BURST OF SPEED',
+          'BIGGER JUMPS SLAM OPEN MORE HAIRPINS',
+        ]
+        document.getElementById('boot-tip').textContent = tips[Math.floor(Math.random() * tips.length)]
+        var shown = 0, target = 0, phase = 'load', real = false
+        function frame() {
+          if (phase !== 'load') return
+          // 没有真实进度时（开发模式、老浏览器）慢慢往前爬
+          if (!real) target += (60 - target) * 0.004
+          shown += (target - shown) * 0.2
+          fill.style.transform = 'scaleX(' + shown / 100 + ')'
+          pctEl.textContent = Math.round(shown) + '%'
+          requestAnimationFrame(frame)
+        }
+        requestAnimationFrame(frame)
+        function mb(n) { return (n / 1048576).toFixed(1) }
+        var api = (window.__boot = {
+          progress: function (got, total) {
+            real = true
+            target = Math.min(70, (got / total) * 70)
+            stage.textContent = 'DOWNLOADING · ' + mb(got) + ' / ' + mb(total) + ' MB'
+          },
+          build: function () {
+            if (phase !== 'load') return
+            phase = 'build'
+            boot.className = 'build'
+            stage.textContent = 'BUILDING THE PLANET'
+            pctEl.textContent = ''
+            fill.style.transform = 'scaleX(' + Math.max(shown, 60) / 100 + ')'
+            fill.getBoundingClientRect()
+            fill.style.transition = 'transform 9s cubic-bezier(0.12, 0.7, 0.2, 1)'
+            fill.style.transform = 'scaleX(0.95)'
+          },
+          done: function () {
+            if (phase === 'done' || phase === 'fail') return
+            phase = 'done'
+            stage.textContent = 'READY'
+            fill.style.transition = 'transform 0.25s ease-out'
+            fill.style.transform = 'scaleX(1)'
+            setTimeout(function () { boot.className = 'out' }, 200)
+            setTimeout(function () { if (boot.parentNode) boot.parentNode.removeChild(boot) }, 900)
+          },
+          fail: function () {
+            phase = 'fail'
+            boot.className = 'fail'
+            stage.textContent = 'LOAD FAILED · TAP TO RETRY'
+            boot.onclick = function () { location.reload() }
+          },
+        })
+        // 游戏脚本在搭建阶段出错（例如手机不支持 WebGL）：不要一直停在载入画面，提示点一下重试
+        window.addEventListener('error', function (e) {
+          if (phase === 'build' && e.filename && e.filename.indexOf('/assets/') >= 0) api.fail()
+        })
+        var src = window.__BOOT_SRC, size = window.__BOOT_SIZE
+        // 开发模式：页面自己的脚本标签照常载入
+        if (!src) return
+        var started = false
+        function run() {
+          if (started) return
+          started = true
+          var t0 = Date.now()
+          // 等样式表生效（最多 5 秒），免得界面先没样式地闪一下
+          ;(function wait() {
+            if (!window.__cssOk && Date.now() - t0 < 5000) return void setTimeout(wait, 50)
+            var s = document.createElement('script')
+            s.type = 'module'
+            s.setAttribute('crossorigin', '')
+            s.src = src
+            s.onerror = api.fail
+            document.head.appendChild(s)
+            api.build()
+          })()
+        }
+        if (!window.fetch || !window.ReadableStream) return run()
+        // 先自己下载一遍（能看到进度），下完再用同一个地址插入脚本：浏览器直接用缓存，不会下第二遍
+        fetch(src, { credentials: 'same-origin' })
+          .then(function (res) {
+            if (!res.ok || !res.body) return run()
+            var reader = res.body.getReader(), got = 0
+            function pump() {
+              return reader.read().then(function (r) {
+                if (r.done) return run()
+                got += r.value.length
+                api.progress(Math.min(got, size), size)
+                return pump()
+              })
+            }
+            return pump()
+          })
+          .catch(run)
+      })()
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

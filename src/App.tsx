@@ -1,11 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { KeyboardControls, type KeyboardControlsEntry } from '@react-three/drei'
 import { Leva } from 'leva'
 import World from './World'
 import { type Density, MAX_LEGS, TRAP_LEGS, V_MAX } from './model'
 import { CRASH_COST, GAME_T, LESSONS, type LessonKey, type Phase, SPEED_UNIT, actions, game, hud, isTouch, rankOf, touch } from './hud'
 import { sfx } from './sfx'
+import { boot } from './boot'
+
+// 3D 画面真正画出几帧以后（第一帧里着色器编译最慢），收起载入画面
+function BootDone() {
+  const frames = useRef(0)
+  useFrame(() => {
+    if (frames.current < 3 && ++frames.current === 3) boot()?.done()
+  })
+  return null
+}
 
 export type Controls = 'forward' | 'backward' | 'left' | 'right'
 const KEYS: KeyboardControlsEntry<Controls>[] = [
@@ -1140,6 +1150,7 @@ export default function App() {
     <KeyboardControls map={KEYS}>
       <Canvas shadows dpr={isTouch ? 1 : [1, 2]} gl={{ antialias: false, powerPreference: 'high-performance' }} camera={{ position: [0, 3, -6.4], fov: 50, near: 0.1, far: 1200 }}>
         <World />
+        <BootDone />
       </Canvas>
       <Logo />
       <Cluster />
