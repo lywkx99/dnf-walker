@@ -43,7 +43,8 @@ export type Phase = 'menu' | 'count' | 'play' | 'over'
 
 // 玩的过程中第一次遇到某种情况时弹出的 walking 小知识（每局每条最多一次）。正文里 *...* 是强调的关键词
 export const LESSONS = {
-  signal: { title: 'SIGNAL', tone: 'roll', text: 'A leg binds and opens hairpin *H1*; fuel strand *H2* then displaces the leg. Each opened H1 is *one unit of signal*.' },
+  // 表面 CHA：腿打开 H1，H2 与 H1 组装并把腿置换下来，腿再生、去开下一个 H1（稿件 2A 的机制）
+  signal: { title: 'CHA WALKING', tone: 'roll', text: 'Each leg is a *CHA catalyst*: it opens hairpin *H1*, then hairpin *H2* assembles with H1 and *displaces the leg* to the next H1. Each H1·H2 pair is *one unit of signal*.' },
   grip: { title: 'MULTIVALENT GRIP', tone: 'roll', text: 'Several legs bound at once *hold the particle on the track* while single legs are exchanged. A *medium number* rolls fastest.' },
   slip: { title: 'TOO FEW LEGS', tone: 'slip', text: 'When hairpins sit far apart, *too few legs* reach the track — the walker *slips and stalls*.' },
   trap: { title: 'SELF-TRAP', tone: 'trap', text: 'The nanoflower surface is folded. In tight, *product-crowded folds* the particle gets *physically stuck* — one candidate reason turnover fades.' },
