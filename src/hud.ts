@@ -41,16 +41,16 @@ export const SPEED_UNIT = 24
 export const GAME_T = 120
 export type Phase = 'menu' | 'count' | 'play' | 'over'
 
-// 玩的过程中第一次遇到某种情况时弹出的 walking 小知识（每局每条最多一次）
+// 玩的过程中第一次遇到某种情况时弹出的 walking 小知识（每局每条最多一次）。正文里 *...* 是强调的关键词
 export const LESSONS = {
-  signal: { title: 'SIGNAL', tone: 'roll', text: 'A leg binds and opens hairpin H1; fuel strand H2 then displaces the leg. Each opened H1 is one unit of signal.' },
-  grip: { title: 'MULTIVALENT GRIP', tone: 'roll', text: 'Several legs bound at once hold the particle on the track while single legs are exchanged. A medium number rolls fastest.' },
-  slip: { title: 'TOO FEW LEGS', tone: 'slip', text: 'When hairpins sit far apart, too few legs reach the track — the walker slips and stalls.' },
-  trap: { title: 'SELF-TRAP', tone: 'trap', text: 'The nanoflower surface is folded. In tight, product-crowded folds the particle gets physically stuck — one candidate reason turnover fades.' },
-  pin: { title: 'PINNED', tone: 'trap', text: 'Too many legs bound at once pin the walker in place — a dense track can hold it too tightly to roll.' },
-  burnt: { title: 'BURNT BRIDGE', tone: 'slip', text: 'An opened hairpin cannot be used again. Old track gives no grip — keep heading for fresh hairpins.' },
-  stuck: { title: 'NON-SPECIFIC ADSORPTION', tone: 'stuck', text: 'The particle sticks to the surface instead of walking. No hairpins open until it breaks free.' },
-  fuel: { title: 'H2 FUEL', tone: 'fuel', text: 'More fuel strands displace bound legs faster — the walker moves faster and hairpins open quicker.' },
+  signal: { title: 'SIGNAL', tone: 'roll', text: 'A leg binds and opens hairpin *H1*; fuel strand *H2* then displaces the leg. Each opened H1 is *one unit of signal*.' },
+  grip: { title: 'MULTIVALENT GRIP', tone: 'roll', text: 'Several legs bound at once *hold the particle on the track* while single legs are exchanged. A *medium number* rolls fastest.' },
+  slip: { title: 'TOO FEW LEGS', tone: 'slip', text: 'When hairpins sit far apart, *too few legs* reach the track — the walker *slips and stalls*.' },
+  trap: { title: 'SELF-TRAP', tone: 'trap', text: 'The nanoflower surface is folded. In tight, *product-crowded folds* the particle gets *physically stuck* — one candidate reason turnover fades.' },
+  pin: { title: 'PINNED', tone: 'trap', text: '*Too many legs* bound at once pin the walker in place — a dense track can hold it *too tightly to roll*.' },
+  burnt: { title: 'BURNT BRIDGE', tone: 'slip', text: 'An opened hairpin *cannot be used again*. Old track gives no grip — keep heading for *fresh hairpins*.' },
+  stuck: { title: 'NON-SPECIFIC ADSORPTION', tone: 'stuck', text: 'The particle *sticks to the surface* instead of walking. *No hairpins open* until it breaks free.' },
+  fuel: { title: 'H2 FUEL', tone: 'fuel', text: 'More fuel strands *displace bound legs faster* — the walker moves faster and hairpins open quicker.' },
 } as const
 export type LessonKey = keyof typeof LESSONS
 

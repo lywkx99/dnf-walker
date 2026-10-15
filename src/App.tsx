@@ -157,6 +157,56 @@ function GooIcon() {
     </svg>
   )
 }
+// 打滑：球离开地面，身后两道滑痕
+function SlipIcon() {
+  return (
+    <svg className="ico" viewBox="0 0 24 24">
+      <circle cx="14" cy="10" r="5" />
+      <path d="M2 20 H22 M3 12.5 H7 M2 16 H8" />
+    </svg>
+  )
+}
+// 被钉住：一颗球被一排腿钉在地上
+function PinIcon() {
+  return (
+    <svg className="ico" viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="4.5" />
+      <path d="M2.5 21 H21.5 M5 21 L9 12 M9 21 L10.5 12.8 M12 21 V12.5 M15 21 L13.5 12.8 M19 21 L15 12" />
+    </svg>
+  )
+}
+// 烧掉的桥：火苗
+function FlameIcon() {
+  return (
+    <svg className="ico" viewBox="0 0 24 24">
+      <path d="M12 22 C7.5 22 5 19 5 15.2 C5 11 8.5 9 9 4.5 C11.5 6.5 12.5 9 12 11 C13.5 10 14.5 8.5 14.8 6.5 C17.5 9 19 12 19 15.2 C19 19 16.5 22 12 22 Z" />
+      <path d="M12 22 C10.2 22 9.2 20.6 9.2 19 C9.2 17 11 16 12 14 C13 16 14.8 17 14.8 19 C14.8 20.6 13.8 22 12 22 Z" />
+    </svg>
+  )
+}
+function BoltIcon() {
+  return (
+    <svg className="ico" viewBox="0 0 24 24">
+      <path d="M13.5 2 L5 13.5 H11 L10 22 L19 10 H13 Z" />
+    </svg>
+  )
+}
+function WarnIcon() {
+  return (
+    <svg className="ico" viewBox="0 0 24 24">
+      <path d="M12 2.5 L22.5 20.5 H1.5 Z" />
+      <path d="M12 9 V14.5 M12 17.6 V17.8" />
+    </svg>
+  )
+}
+// 六边形底座（徽章、图标框共用，和仪表上的腿数徽章同一个形状）
+function HexShape() {
+  return (
+    <svg className="hexo" viewBox="0 0 100 112">
+      <polygon points="50,3 96,29 96,83 50,109 4,83 4,29" />
+    </svg>
+  )
+}
 function DotsIcon({ n }: { n: number }) {
   const step = 28 / n
   return (
@@ -449,7 +499,25 @@ function Timer({ phase }: { phase: Phase }) {
   )
 }
 
-// ================================================================ walking 小知识卡（左侧滑入，一张一张来）
+// ================================================================ walking 小知识卡（游戏里“解锁图鉴”式的卡片，一张一张来）
+const LESSON_ICON: Record<LessonKey, React.ReactNode> = {
+  signal: <HairpinIcon />,
+  grip: <WalkerIcon />,
+  slip: <SlipIcon />,
+  trap: <FoldIcon />,
+  pin: <PinIcon />,
+  burnt: <FlameIcon />,
+  stuck: <GooIcon />,
+  fuel: <HelixIcon />,
+}
+const LESSON_TOTAL = Object.keys(LESSONS).length
+const LESSON_MS = 6500
+// 知识卡正文里用 *...* 标出的关键词，显示成强调色
+function rich(text: string) {
+  return text.split('*').map((s, k) => (k % 2 ? <b key={k}>{s}</b> : s))
+}
+const pad2 = (n: number) => String(n).padStart(2, '0')
+
 function LessonToast() {
   const [card, setCard] = useState<{ key: LessonKey; id: number } | null>(null)
   useEffect(() => {
@@ -466,7 +534,7 @@ function LessonToast() {
       }
       showing = true
       setCard({ key, id: Math.random() })
-      timer = window.setTimeout(next, 6500)
+      timer = window.setTimeout(next, LESSON_MS)
     }
     const id = setInterval(() => {
       if (game.lesson.id !== seen && game.lesson.key) {
@@ -488,11 +556,22 @@ function LessonToast() {
   }, [])
   if (!card) return null
   const L = LESSONS[card.key]
+  const n = game.learned.indexOf(card.key) + 1
   return (
     <div key={card.id} className={`lesson ${L.tone}`}>
-      <div className="lesson-tag">WALKING NOTE</div>
-      <div className="lesson-title">{L.title}</div>
-      <div className="lesson-text">{L.text}</div>
+      <div className="ls-frame">
+        <div className="ls-body">
+          <div className="ls-badge"><HexShape />{LESSON_ICON[card.key]}</div>
+          <div className="ls-top">
+            <span className="ls-kicker"><i />NEW WALKING NOTE</span>
+            <span className="ls-count">{pad2(n)}<em>/{pad2(LESSON_TOTAL)}</em></span>
+          </div>
+          <div className="ls-title">{L.title}</div>
+          <div className="ls-rule" />
+          <div className="ls-text">{rich(L.text)}</div>
+          <div className="ls-timer" />
+        </div>
+      </div>
     </div>
   )
 }
@@ -505,7 +584,7 @@ const TRACKS: { d: Density; dots: number; sub: string; tag: string; grip: number
   { d: 'MT', dots: 4, sub: 'MID DENSITY', tag: 'BALANCED · FAST', grip: 4, pin: 1 },
   { d: 'HT', dots: 6, sub: 'HIGH DENSITY', tag: 'DENSE · CLINGY', grip: 5, pin: 4 },
 ]
-const STEPS = ['THE RUSH', 'THE TERRAIN', 'THE TRACK']
+const STEPS = ['THE RUSH', 'THE ROAD AHEAD', 'THE TRACK']
 // 看过一次引导以后，再回到开始界面时直接到选轨道那一步
 let introSeen = false
 
@@ -575,20 +654,39 @@ function BurntBridge() {
 }
 
 const POWER = [
-  { k: 'ramp', icon: <RampIcon />, name: 'RAMP', chip: 'LAUNCH', line: 'Hit it head-on for a speed boost and big air.' },
-  { k: 'slam', icon: <SlamIcon />, name: 'SLAM', chip: '+ BONUS', line: 'Higher, farther jumps blast open hairpins where you land.' },
+  { k: 'ramp', icon: <RampIcon />, name: 'RAMP', chip: 'LAUNCH', line: 'Hit it head-on — speed boost and big air.' },
+  { k: 'slam', icon: <SlamIcon />, name: 'SLAM', chip: '+ BONUS', line: 'Higher, longer jumps blast open more hairpins on landing.' },
   { k: 'fuel', icon: <HelixIcon />, name: 'H2 FUEL', chip: 'SPEED UP', line: 'Grab the blue helix for a burst of speed.' },
 ]
 const DANGER = [
-  { k: 'trap', icon: <FoldIcon />, name: 'SELF-TRAP ZONE', chip: 'TRAP', line: 'Folded, rugged patch of the nanoflower. The walker gets physically stuck at any speed.' },
-  { k: 'stuck', icon: <GooIcon />, name: 'ADSORPTION WELL', chip: 'STICK', line: `Glowing green pit. Sticks you down — hold ${isTouch ? 'GAS' : '▲'} to break free.` },
-  { k: 'crystal', icon: <CrystalIcon />, name: 'CRYSTAL', chip: '−30', line: 'Every crash costs 30 hairpins.' },
+  { k: 'trap', icon: <FoldIcon />, name: 'SELF-TRAP ZONE', chip: 'TRAP', line: 'Rugged folds of the nanoflower. You get stuck at any speed.' },
+  { k: 'stuck', icon: <GooIcon />, name: 'ADSORPTION WELL', chip: 'STICK', line: `Glowing green pit that glues you down — hold ${isTouch ? 'GAS' : '▲'} to break free.` },
+  { k: 'crystal', icon: <CrystalIcon />, name: 'CRYSTAL', chip: '−30', line: 'Crash into one and lose 30 hairpins.' },
 ]
+
+// 一个模块：带标题栏的框（增益 / 危险）
+function FxModule({ kind, items }: { kind: 'power' | 'danger'; items: typeof POWER }) {
+  const power = kind === 'power'
+  return (
+    <section className={`fx-mod ${kind}`}>
+      <div className="fx-mod-frame">
+        <div className="fx-mod-in">
+          <header className="mod-head">
+            <span className="mod-badge"><HexShape />{power ? <BoltIcon /> : <WarnIcon />}</span>
+            <span className="mod-name">{power ? 'POWER' : 'DANGER'}</span>
+            <span className="mod-cue">{power ? 'GRAB THESE' : 'STEER CLEAR'}</span>
+          </header>
+          <div className="mod-list">{items.map((f) => <FxCard key={f.k} f={f} />)}</div>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 function FxCard({ f }: { f: (typeof POWER)[number] }) {
   return (
     <div className={`fx-card ${f.k}`}>
-      <div className="fx-glyph">{f.icon}</div>
+      <div className="fx-glyph"><HexShape />{f.icon}</div>
       <div className="fx-body">
         <div className="fx-head">
           <span className="fx-name">{f.name}</span>
@@ -689,15 +787,11 @@ function Menu({ density }: { density: Density }) {
 
           {step === 1 && (
             <>
-              <div className="pane-title">READ THE <span>TERRAIN</span></div>
-              <div className="subtitle">NO SIGNS ON THE PLANET — LEARN THE SHAPES</div>
-              <div className="fx-group power">
-                <div className="fx-group-title">POWER</div>
-                <div className="fx-grid">{POWER.map((f) => <FxCard key={f.k} f={f} />)}</div>
-              </div>
-              <div className="fx-group danger">
-                <div className="fx-group-title">DANGER</div>
-                <div className="fx-grid">{DANGER.map((f) => <FxCard key={f.k} f={f} />)}</div>
+              <div className="pane-title">WHAT YOU'LL <span>FACE</span></div>
+              <div className="subtitle">NO SIGNS OUT THERE — LEARN THE SHAPES</div>
+              <div className="fx-mods">
+                <FxModule kind="power" items={POWER} />
+                <FxModule kind="danger" items={DANGER} />
               </div>
             </>
           )}
@@ -804,11 +898,14 @@ function Results({ density }: { density: Density }) {
         </div>
         {game.learned.length > 0 && (
           <div className="notes">
-            <div className="notes-head">WALKING NOTES</div>
+            <div className="notes-head">WALKING NOTES <b>{pad2(game.learned.length)}</b><em>/{pad2(LESSON_TOTAL)}</em></div>
             {game.learned.map((k) => (
               <div key={k} className={`note ${LESSONS[k].tone}`}>
-                <div className="note-title">{LESSONS[k].title}</div>
-                <div className="note-text">{LESSONS[k].text}</div>
+                <div className="note-in">
+                  <div className="note-badge"><HexShape />{LESSON_ICON[k]}</div>
+                  <div className="note-title">{LESSONS[k].title}</div>
+                  <div className="note-text">{rich(LESSONS[k].text)}</div>
+                </div>
               </div>
             ))}
           </div>
